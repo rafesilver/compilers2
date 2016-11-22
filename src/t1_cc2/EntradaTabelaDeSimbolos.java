@@ -12,6 +12,7 @@ public class EntradaTabelaDeSimbolos {
     private String nome, tipo;
     
     public EntradaTabelaDeSimbolos(String nome, String tipo) {
+        //System.out.print("\n" + nome + " - " + tipo + "\n");
         this.nome = nome;
         this.tipo = tipo;
     }
@@ -22,6 +23,10 @@ public class EntradaTabelaDeSimbolos {
     
     public String getTipo() {
         return tipo;
+    }
+    
+    public void setTipo(String param){
+        this.tipo = param;
     }
     
     @Override

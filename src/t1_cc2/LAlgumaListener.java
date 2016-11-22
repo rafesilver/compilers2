@@ -438,6 +438,16 @@ public interface LAlgumaListener extends ParseTreeListener {
 	 */
 	void exitOutros_termos(LAlgumaParser.Outros_termosContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link LAlgumaParser#outros_termos2}.
+	 * @param ctx the parse tree
+	 */
+	void enterOutros_termos2(LAlgumaParser.Outros_termos2Context ctx);
+	/**
+	 * Exit a parse tree produced by {@link LAlgumaParser#outros_termos2}.
+	 * @param ctx the parse tree
+	 */
+	void exitOutros_termos2(LAlgumaParser.Outros_termos2Context ctx);
+	/**
 	 * Enter a parse tree produced by {@link LAlgumaParser#fator}.
 	 * @param ctx the parse tree
 	 */

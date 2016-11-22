@@ -10,10 +10,31 @@ grammar LAlguma;
 @members{
     static String grupo = "<407950 & 407895>"; 
     PilhaDeTabelas pilhaDeTabelas = new PilhaDeTabelas();
+    int tester = 0;
     
     public void erro(String txt, int line){
-        ErrorListener.erroMiguezento(line);
-	throw new ParseCancellationException(txt);
+        if(ErrorListener.erroMiguezento(txt, line));
+            throw new ParseCancellationException(txt);
+    }
+    
+    public String compare(String input1, String input2){
+        if(input2 == null || input2 == "")
+            return input1;
+        else
+            if(input1 == input2)
+                return input1;
+            else
+                return "225: tipo incompativel";
+    }
+    
+    public boolean atribuivel(String var, String value){                                          
+        if(var == value)
+            return true;
+        else
+            if(var == "real" && value == "inteiro")
+                return true;
+            else
+                return false;
     }
 }
 
@@ -58,10 +79,12 @@ declaracao_local : 'declare' variavel
                 {
                     // Adicionar símbolo à pilha (se ainda não estiver na tabela)
                     if(!pilhaDeTabelas.existeSimbolo($IDENT.text))
-                        pilhaDeTabelas.topo().adicionarSimbolo($IDENT.text, "Constante");
+                        pilhaDeTabelas.topo().adicionarSimbolo($IDENT.text, $tipo_basico.ret);
                     else
                         // Se o simbolo já está na tabela, é erro semântico
-                        ErrorListener.erroIdentRedeclarado($IDENT.text, $IDENT.getLine());
+                        ErrorListener.erroSemantico(
+                            "Linha " + $IDENT.getLine() + ": identificador "
+                            + $IDENT.text + " ja declarado anteriormente");
                 }
 
 		| 'tipo' IDENT ':' tipo
@@ -72,19 +95,55 @@ declaracao_local : 'declare' variavel
                         pilhaDeTabelas.topo().adicionarSimbolo($IDENT.text, "Tipo");
                     else
                         // Se o simbolo já está na tabela, é erro semântico
-                        ErrorListener.erroIdentRedeclarado($IDENT.text, $IDENT.getLine());
+                        ErrorListener.erroSemantico(
+                            "Linha " + $IDENT.getLine() + ": identificador "
+                            + $IDENT.text + " ja declarado anteriormente");
                 }
 
 		;
 
 // 5.
-variavel	: IDENT dimensao mais_var ':' tipo ;
+variavel	: IDENT dimensao mais_var ':' tipo 
+              {
+               if(!pilhaDeTabelas.existeSimbolo($IDENT.text)){                                            
+                   //if(nomeReg.equals(""))
+                       pilhaDeTabelas.topo().adicionarSimbolo($IDENT.text, $tipo.ret);
+                       //System.out.print($tipo.ret);
+                   //else
+                   //    pilhaDeTabelas.topo().adicionarSimbolo(
+                   //    (nomeReg + "." + $IDENT.text), "Variavel");
+               }
+               else
+                   ErrorListener.erroSemantico(
+                            "Linha " + $IDENT.getLine() + ": identificador "
+                            + $IDENT.text + " ja declarado anteriormente");
+              //System.out.print(pilhaDeTabelas.topo().toString());
+              }
+            ;
 
 // 6.
-mais_var	: (',' IDENT dimensao mais_var)? ;
+mais_var	: (',' IDENT dimensao 
+               
+               {
+                if(!pilhaDeTabelas.existeSimbolo($IDENT.text))
+                    pilhaDeTabelas.topo().adicionarSimbolo($IDENT.text, "223: 'preencher depois'");
+                else
+                   ErrorListener.erroSemantico(
+                            "Linha " + $IDENT.getLine() + ": identificador "
+                            + $IDENT.text + " ja declarado anteriormente");
+               }
+               
+               mais_var)? ;
 
 // 7.
-identificador	: ponteiros_opcionais IDENT dimensao outros_ident ;
+identificador	: ponteiros_opcionais IDENT 
+                  {
+                    if(!pilhaDeTabelas.existeSimbolo($IDENT.text))
+                        ErrorListener.erroSemantico(
+                        "Linha " + $IDENT.getLine() + ": identificador "
+                        + $IDENT.text + " nao declarado");
+                  }
+                  dimensao outros_ident ;
 
 // 8.
 ponteiros_opcionais : ('^' ponteiros_opcionais)? ;
@@ -96,7 +155,10 @@ outros_ident : ('.' identificador)? ;
 dimensao : ('[' exp_aritmetica ']' dimensao)? ;
 
 // 11.
-tipo	: registro | tipo_estendido ;
+tipo returns [String ret]
+        : registro
+        | tipo_estendido {$ret = $tipo_estendido.ret;}
+        ;
 
 // 12.
 mais_ident : (',' identificador mais_ident)? ;
@@ -105,13 +167,29 @@ mais_ident : (',' identificador mais_ident)? ;
 mais_variaveis : (variavel mais_variaveis)? ;
 
 // 14.
-tipo_basico	: 'literal' | 'inteiro' | 'real' | 'logico' ;
+tipo_basico returns [String ret]
+        : 'literal' {$ret = "literal";}
+        | 'inteiro' {$ret = "inteiro";}
+        | 'real' {$ret = "real";}
+        | 'logico' {$ret = "logico";};
 
 // 15.
-tipo_basico_ident : tipo_basico | IDENT ;
+tipo_basico_ident returns [String ret]
+                  : tipo_basico {$ret = $tipo_basico.ret;}
+                  | IDENT 
+                  {
+                   if(!pilhaDeTabelas.existeSimbolo($IDENT.text))
+                        ErrorListener.erroSemantico(
+                        "Linha " + $IDENT.getLine() + ": tipo "
+                        + $IDENT.text + " nao declarado");
+                  }
+                  ;
 
 // 16.
-tipo_estendido	: ponteiros_opcionais tipo_basico_ident ;
+tipo_estendido returns [String ret]	
+            : ponteiros_opcionais tipo_basico_ident 
+            {$ret = $tipo_basico_ident.ret;}
+            ;
 
 // 17.
 valor_constante : CADEIA | NUM_INT | NUM_REAL | 'verdadeiro' | 'falso' ;
@@ -124,16 +202,22 @@ declaracao_global :
 
                 'procedimento'
 
-                {
-                    // Escopo de Procedimento
-                    TabelaDeSimbolos outraTabela = new TabelaDeSimbolos("procedimento");
-                    pilhaDeTabelas.empilhar(outraTabela);}
-
                 IDENT '(' parametros_opcional ')' declaracoes_locais comandos 'fim_procedimento'
 
                 {
+                 if(!pilhaDeTabelas.existeSimbolo($IDENT.text))
+                    pilhaDeTabelas.topo().adicionarSimbolo($IDENT.text, "Procedimento");
+                 else
+                    ErrorListener.erroIdentRedeclarado($IDENT.text, $IDENT.getLine());
+                    
+                 // Escopo de Procedimento
+                    TabelaDeSimbolos outraTabela = new TabelaDeSimbolos("procedimento");
+                    pilhaDeTabelas.empilhar(outraTabela);   
+                }
+                
+                
                     // Fim do Escopo
-                    pilhaDeTabelas.desempilhar();}
+                    {pilhaDeTabelas.desempilhar();}
 
 		| 'funcao'
 
@@ -145,8 +229,17 @@ declaracao_global :
                 IDENT '(' parametros_opcional ')' ':' tipo_estendido declaracoes_locais comandos 'fim_funcao'
 
                 {
-                    // Fim do Escopo
-                    pilhaDeTabelas.desempilhar();}
+                 // Fim do Escopo
+                 pilhaDeTabelas.desempilhar();
+                 
+                 if(!pilhaDeTabelas.existeSimbolo($IDENT.text))
+                    pilhaDeTabelas.topo().adicionarSimbolo($IDENT.text, "Funcao");
+                 else
+                        ErrorListener.erroSemantico(
+                            "Linha " + $IDENT.getLine() + ": identificador "
+                            + $IDENT.text + " ja declarado anteriormente");
+                }
+                
 
                 ;
 
@@ -169,7 +262,7 @@ declaracoes_locais : (declaracao_local declaracoes_locais)? ;
 corpo : declaracoes_locais comandos ;
 
 // 26.
-comandos : (cmd comandos)? ;
+comandos : (cmd comandos)?;
 
 // 27.
 cmd	: 'leia' '(' identificador mais_ident ')'
@@ -180,7 +273,15 @@ cmd	: 'leia' '(' identificador mais_ident ')'
 	| 'enquanto' expressao 'faca' comandos 'fim_enquanto'
 	| 'faca' comandos 'ate' expressao
 	| '^' IDENT outros_ident dimensao '<-' expressao
+         {if(!atribuivel(pilhaDeTabelas.getTipo($IDENT.text), $expressao.ret))
+            ErrorListener.erroSemantico("Linha " + $IDENT.getLine()
+             + ": atribuicao nao compativel para ^" + $IDENT.text);
+         }
 	| IDENT chamada_atribuicao
+        {if(!atribuivel(pilhaDeTabelas.getTipo($IDENT.text), $chamada_atribuicao.ret))
+            ErrorListener.erroSemantico("Linha " + $IDENT.getLine()
+             + ": atribuicao nao compativel para " + $IDENT.text);
+         }
 	| 'retorne' expressao
 	;
 
@@ -191,9 +292,12 @@ mais_expressao	: (',' expressao mais_expressao)? ;
 senao_opcional	: ('senao' comandos)? ;
 
 // 30.
-chamada_atribuicao : '(' argumentos_opcional ')'
-				| outros_ident dimensao '<-' expressao
-				;
+chamada_atribuicao returns [String ret]
+                    : '(' argumentos_opcional ')' {$ret = "220: missing";}
+                    | outros_ident dimensao '<-' expressao
+                    {$ret = $expressao.ret;}
+
+                    ;
 
 // 31.
 argumentos_opcional : (expressao mais_expressao)? ;
@@ -220,7 +324,10 @@ intervalo_opcional : ('..' op_unario NUM_INT)? ;
 op_unario : ('-')? ;
 
 // 39.
-exp_aritmetica : termo outros_termos ;
+exp_aritmetica returns [String ret] 
+              : termo outros_termos
+              {$ret = compare($termo.ret, $outros_termos.ret);}
+               ;
 
 // 40.
 op_multiplicacao : '*' | '/' ;
@@ -229,35 +336,55 @@ op_multiplicacao : '*' | '/' ;
 op_adicao : '+' | '-' ;
 
 // 42.
-termo : fator outros_fatores ;
+termo returns [String ret] 
+    : fator outros_fatores {$ret = $fator.ret;};
 
-// 43.
-outros_termos : (op_adicao termo outros_termos)? ;
+// 43a.
+outros_termos returns [String ret] :
+        (op_adicao termo outros_termos2
+            {$ret = compare($termo.ret, $outros_termos2.ret);}
+        )?;
+
+// 43b.
+outros_termos2 returns [String ret] :
+        (op_adicao termo outros_termos
+            {$ret = compare($termo.ret, $outros_termos.ret);}
+        )?;
 
 // 44.
-fator : parcela outras_parcelas ;
+fator returns [String ret] 
+        : parcela outras_parcelas {$ret = $parcela.ret;};
 
 // 45.
 outros_fatores : (op_multiplicacao fator outros_fatores)? ;
 
 // 46.
-parcela	: op_unario parcela_unario
-	| parcela_nao_unario
+parcela	returns [String ret]
+        : op_unario parcela_unario {$ret = $parcela_unario.ret;}
+	| parcela_nao_unario {$ret = $parcela_nao_unario.ret;}
 	;
 
 // 47.
-parcela_unario	: '^' IDENT outros_ident dimensao
+parcela_unario returns [String ret]
+                : '^' IDENT outros_ident dimensao
+                  {if(!pilhaDeTabelas.existeSimbolo($IDENT.text)){ErrorListener.erroSemantico("Linha "+$IDENT.getLine()+": identificador "+ $IDENT.text+" nao declarado");}}
+                  {$ret = pilhaDeTabelas.getTipo($IDENT.text);}
 		| IDENT chamada_partes
+                  {if(!pilhaDeTabelas.existeSimbolo($IDENT.text)){ErrorListener.erroSemantico("Linha "+$IDENT.getLine()+": identificador "+ $IDENT.text+" nao declarado");}}
+                  {$ret = pilhaDeTabelas.getTipo($IDENT.text);}
                 | IDENT
-		| NUM_INT
-		| NUM_REAL
-		| '(' expressao ')'
+                  {if(!pilhaDeTabelas.existeSimbolo($IDENT.text)){ErrorListener.erroSemantico("Linha "+$IDENT.getLine()+": identificador "+ $IDENT.text+" nao declarado");}}
+                  {$ret = pilhaDeTabelas.getTipo($IDENT.text);}
+		| NUM_INT {$ret = "inteiro";}
+		| NUM_REAL {$ret = "real";}
+		| '(' expressao ')' {$ret = $expressao.ret;}
 		;
 
 // 48.
-parcela_nao_unario : '&' IDENT outros_ident dimensao
-			| CADEIA
-			;
+parcela_nao_unario returns [String ret]
+                : '&' IDENT outros_ident dimensao {$ret = pilhaDeTabelas.getTipo($IDENT.text);}
+		| CADEIA {$ret = "literal";}
+		;
 
 // 49.
 outras_parcelas	: ('%' parcela outras_parcelas)? ;
@@ -267,28 +394,44 @@ chamada_partes	: '(' expressao mais_expressao ')'
 		| outros_ident dimensao
 		;
 // 51.
-exp_relacional	: exp_aritmetica op_opcional ;
+exp_relacional returns [String ret]
+                : exp_aritmetica op_opcional 
+                  {
+                  if($op_opcional.ret == null)
+                    $ret = $exp_aritmetica.ret;
+                  else
+                    if($exp_aritmetica.ret == $op_opcional.ret)
+                        $ret = "logico";
+                    else
+                        $ret = "225: tipo incompativel";
+                }
+                ;
 
 // 52. 
-op_opcional	: (op_relacional exp_aritmetica)? ;
+op_opcional returns [String ret]
+                : (op_relacional exp_aritmetica {$ret = $exp_aritmetica.ret;})? ;
 
 // 53.
 op_relacional	: '='
-				| '<>'
-				| '>='
-				| '<='
-				| '>'
-				| '<'
-				;
+		| '<>'
+		| '>='
+		| '<='
+		| '>'
+		| '<'
+		;
 
 // 54.
-expressao	: termo_logico outros_termos_logicos ;
+expressao returns [String ret]	
+        : termo_logico outros_termos_logicos 
+        {$ret = $termo_logico.ret;};
 
 // 55.
 op_nao	: ('nao')? ;
 
 // 56.
-termo_logico	: fator_logico outros_fatores_logicos ;
+termo_logico returns [String ret]
+                : fator_logico outros_fatores_logicos 
+                {$ret = $fator_logico.ret;};
 
 // 57.
 outros_termos_logicos	: ('ou' termo_logico outros_termos_logicos)? ;
@@ -297,12 +440,14 @@ outros_termos_logicos	: ('ou' termo_logico outros_termos_logicos)? ;
 outros_fatores_logicos	: ('e' fator_logico outros_fatores_logicos)? ;
 
 // 59.
-fator_logico	: op_nao parcela_logica ;
+fator_logico returns [String ret]
+                : op_nao parcela_logica {$ret = $parcela_logica.ret;};
 
 // 60.
-parcela_logica	: 'verdadeiro'
-		| 'falso'
-		| exp_relacional
+parcela_logica returns [String ret]
+                : 'verdadeiro' {$ret = "logico";}
+		| 'falso' {$ret = "logico";}
+		| exp_relacional {$ret = $exp_relacional.ret;}
 		;
 
 // OUTROS
@@ -317,7 +462,7 @@ NUM_REAL : ('0'..'9')+ '.' ('0'..'9')+ ;
 
 COMENTARIO : '{' ~('\n' | '\r' | '}')* '}' {skip();} ;
 
-COMENTARIO_ERRADO : '{'
+COMENTARIO_ERRADO : '{' ~('\n' | '}')* '\n'
                    //{stop("Linha "+getLine()+": comentario nao fechado");}
                     {
                      erro("comentario nao fechado", getLine());

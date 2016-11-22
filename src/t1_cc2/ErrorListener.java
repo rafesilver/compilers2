@@ -31,25 +31,36 @@ class ErrorListener implements ANTLRErrorListener {
     //      Provavelmente há milhares de maneiras de fazer isso funcionar de uma
     // forma menos precária, mas é issae que tem pra hoje.
     //      #ehnois
-    public static void erroMiguezento(int linha){   
-        out.println("sintatico","Linha " + linha + ": ");//"sintatico", "Linha "+linha+": comentario nao fechado");
+    public static boolean erroMiguezento(String token, int linha){   
+        if(!out.encontrouErro("sintatico")){
+            out.println("sintatico","Linha " + linha + ": " + token + "\n");//"sintatico", "Linha "+linha+": comentario nao fechado");
+            return true;
+        }
+        return false;
     }
     
     public static void erroIdentRedeclarado(String token, int linha){
         // https://www.dicio.com.br/redeclarar/
-        if(out.encontrouErroSintatico())    
+        if(out.encontrouErro("sintatico"))    
            out.println("semantico", "Linha "+linha+": identificador "+token+" ja declarado anteriormente");
     }
+    
+        public static void erroIdentIndeclarado(String token, int linha){
+            if(out.encontrouErro("sintatico"))    
+               out.println("semantico", "Linha "+linha+": identificador "+token+" nao declarado");
+        }
+        
+        public static void erroSemantico(String texto){
+            if(out.encontrouErro("sintatico"))
+                System.out.print("");
+               out.println("semantico", texto + "\n");
+        }
     
 //    public static void erroSemantico2(String token, int i){
 //        if(out.getPrimeiroErro())    
 //           out.printlnSemantico("Linha "+i+": tipo "+token+" nao declarado");
 //    }
 //    
-//    public static void erroSemantico3(String token, int i){
-//        if(out.getPrimeiroErro())    
-//           out.printlnSemantico("Linha "+i+": identificador "+token+" nao declarado");
-//    }
 //    
 //    public static void erroSemantico4(String token, int i){
 //        if(out.getPrimeiroErro())    
@@ -75,7 +86,7 @@ class ErrorListener implements ANTLRErrorListener {
 //               texto = "EOF";
 //            }
         if(!out.serahQueErrou())
-            out.println("sintatico", "Linha "+ linha +": erro sintatico proximo a " + texto);
+            out.println("sintatico", "Linha "+ linha +": erro sintatico proximo a " + texto.replace("<EOF>","EOF") + "\n");
             out.setErro();
     }
 

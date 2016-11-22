@@ -17,13 +17,18 @@ public class Saida {
     private static boolean houveErro = false;
     
     public static void println(String erro, String txt) {
-        System.out.print(txt); 
-        texto.append(txt);
-        if(erro == "sintatico")
-            erroSintatico = true;
-        else
-            if(erro == "semantico")
-                erroSemantico = true;
+        if(erroSintatico == false || erro == "fim"){
+            if(erro == "sintatico"){
+                texto.setLength(0);
+                erroSintatico = true;
+            }
+            else
+                if(erro == "semantico")
+                    erroSemantico = true;
+            
+            System.out.print(txt); 
+            texto.append(txt);
+        }
     }
     
     public static void clear() {
@@ -34,8 +39,12 @@ public class Saida {
         return texto.toString();
     }
     
-    public static boolean encontrouErroSintatico(){
-        return erroSintatico;
+    public static boolean encontrouErro(String erro){
+        if(erro == "sintatico")
+            return erroSintatico;
+        if(erro == "semantico")
+            return erroSemantico;
+        return false;
     }
         
     public static boolean serahQueErrou(){

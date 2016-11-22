@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  *
- * TO RUN: java -jar "C:\Users\Fuler\Documents\NetBeansProjects\T1_CC2\dist\T1_CC2.jar" "test (1).txt" "output.txt"
+ * TO RUN: java -jar "C:\Users\Fuler\Documents\NetBeansProjects\T1_CC2\dist\T1_CC2.jar" "semantico (5).txt" "output.txt"
  * ( 'cd Desktop/TestFolder' before running)
  *
  */
@@ -32,7 +32,7 @@ public class Main {
         LAlgumaParser parser = new LAlgumaParser(tokens);
         parser.removeErrorListeners();
         parser.addErrorListener(new ErrorListener(saida));
-        System.out.print("\n\n");
+        System.out.print("\n");
         try {
             //GeradorDeCodigo gdc = new GeradorDeCodigo(o);
             LAlgumaParser.ProgramaContext raiz = parser.programa();
@@ -46,13 +46,14 @@ public class Main {
         }    
         }
         PrintWriter pw = new PrintWriter(args[1]);
-        if(saida.encontrouErroSintatico()){
-            saida.println("sintatico", "\nFim da compilacao");
+        if(saida.encontrouErro("sintatico")){
+            saida.println("fim", "Fim da compilacao\n");
             pw.print(saida.getTexto());
-//        }
-//        else if(saida.isSemantico()){
-//            saida.printlnSemantico("Fim da compilacao");
-//            pw.print(saida.getTextoSemantico());
+        }
+        else
+            if(saida.encontrouErro("semantico")){
+                saida.println("fim", "Fim da compilacao\n");
+                pw.print(saida.getTexto());
 //        }else{
 //            pw.print(saida.getTextoCodigo());
         }
@@ -61,7 +62,9 @@ public class Main {
         pw.close();
         
         parser.removeErrorListeners();
-        System.out.print("\n\n--- O código chegou ao fim. ---\n"); 
+        //      Nota: no arquivo de saída, esta parte sai como "Fim da compilacao"
+        // para se adequar com a saída dos arquivos de teste.
+        System.out.print("\n--- O código chegou ao fim. ---\n"); 
     }
     
     

@@ -532,6 +532,18 @@ public class LAlgumaBaseListener implements LAlgumaListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterOutros_termos2(LAlgumaParser.Outros_termos2Context ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitOutros_termos2(LAlgumaParser.Outros_termos2Context ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterFator(LAlgumaParser.FatorContext ctx) { }
 	/**
 	 * {@inheritDoc}
