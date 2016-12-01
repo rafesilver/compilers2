@@ -24,7 +24,7 @@ public class LAlgumaLexer extends Lexer {
 		T__31=32, T__32=33, T__33=34, T__34=35, T__35=36, T__36=37, T__37=38, 
 		T__38=39, T__39=40, T__40=41, T__41=42, T__42=43, T__43=44, T__44=45, 
 		T__45=46, T__46=47, T__47=48, T__48=49, T__49=50, T__50=51, T__51=52, 
-		T__52=53, T__53=54, T__54=55, T__55=56, T__56=57, T__57=58, T__58=59, 
+		T__52=53, T__53=54, T__54=55, T__55=56, T__56=57, T__57=58, RETORNE=59, 
 		IDENT=60, CADEIA=61, NUM_INT=62, NUM_REAL=63, COMENTARIO=64, COMENTARIO_ERRADO=65, 
 		ESPACOS=66, RESTO=67;
 	public static String[] modeNames = {
@@ -39,7 +39,7 @@ public class LAlgumaLexer extends Lexer {
 		"T__33", "T__34", "T__35", "T__36", "T__37", "T__38", "T__39", "T__40", 
 		"T__41", "T__42", "T__43", "T__44", "T__45", "T__46", "T__47", "T__48", 
 		"T__49", "T__50", "T__51", "T__52", "T__53", "T__54", "T__55", "T__56", 
-		"T__57", "T__58", "IDENT", "CADEIA", "NUM_INT", "NUM_REAL", "COMENTARIO", 
+		"T__57", "RETORNE", "IDENT", "CADEIA", "NUM_INT", "NUM_REAL", "COMENTARIO", 
 		"COMENTARIO_ERRADO", "ESPACOS", "RESTO"
 	};
 
@@ -50,16 +50,16 @@ public class LAlgumaLexer extends Lexer {
 		"'procedimento'", "'('", "')'", "'fim_procedimento'", "'funcao'", "'fim_funcao'", 
 		"'var'", "'leia'", "'escreva'", "'se'", "'entao'", "'fim_se'", "'caso'", 
 		"'seja'", "'fim_caso'", "'para'", "'<-'", "'ate'", "'faca'", "'fim_para'", 
-		"'enquanto'", "'fim_enquanto'", "'retorne'", "'senao'", "'..'", "'-'", 
-		"'*'", "'/'", "'+'", "'&'", "'%'", "'<>'", "'>='", "'<='", "'>'", "'<'", 
-		"'nao'", "'ou'", "'e'"
+		"'enquanto'", "'fim_enquanto'", "'senao'", "'..'", "'-'", "'*'", "'/'", 
+		"'+'", "'&'", "'%'", "'<>'", "'>='", "'<='", "'>'", "'<'", "'nao'", "'ou'", 
+		"'e'", "'retorne'"
 	};
 	private static final String[] _SYMBOLIC_NAMES = {
 		null, null, null, null, null, null, null, null, null, null, null, null, 
 		null, null, null, null, null, null, null, null, null, null, null, null, 
 		null, null, null, null, null, null, null, null, null, null, null, null, 
 		null, null, null, null, null, null, null, null, null, null, null, null, 
-		null, null, null, null, null, null, null, null, null, null, null, null, 
+		null, null, null, null, null, null, null, null, null, null, null, "RETORNE", 
 		"IDENT", "CADEIA", "NUM_INT", "NUM_REAL", "COMENTARIO", "COMENTARIO_ERRADO", 
 		"ESPACOS", "RESTO"
 	};
@@ -99,7 +99,7 @@ public class LAlgumaLexer extends Lexer {
 
 	    static String grupo = "<407950 & 407895>"; 
 	    PilhaDeTabelas pilhaDeTabelas = new PilhaDeTabelas();
-	    int tester = 0;
+	    int index = -2;
 	    public void erro(String txt, int line){
 	        if(ErrorListener.erroMiguezento(txt, line));
 	            throw new ParseCancellationException(txt);
@@ -145,6 +145,16 @@ public class LAlgumaLexer extends Lexer {
 	                 "Linha " + line + ": identificador "
 	                 + var + reg + " nao declarado");
 	        }
+	    }
+		
+	    public String getIndex(){return getIndex2(index);}
+	    public String getIndex2(int idx){      
+			index = -2; 
+	        if(idx < 0){
+	            return "";
+			}
+	        else
+	            return "["+idx+"]";
 	    }
 	    
 
@@ -245,10 +255,10 @@ public class LAlgumaLexer extends Lexer {
 		"\37\3 \3 \3 \3 \3 \3 \3!\3!\3!\3!\3!\3!\3!\3\"\3\"\3\"\3\"\3\"\3#\3#\3"+
 		"#\3#\3#\3$\3$\3$\3$\3$\3$\3$\3$\3$\3%\3%\3%\3%\3%\3&\3&\3&\3\'\3\'\3\'"+
 		"\3\'\3(\3(\3(\3(\3(\3)\3)\3)\3)\3)\3)\3)\3)\3)\3*\3*\3*\3*\3*\3*\3*\3"+
-		"*\3*\3+\3+\3+\3+\3+\3+\3+\3+\3+\3+\3+\3+\3+\3,\3,\3,\3,\3,\3,\3,\3,\3"+
-		"-\3-\3-\3-\3-\3-\3.\3.\3.\3/\3/\3\60\3\60\3\61\3\61\3\62\3\62\3\63\3\63"+
-		"\3\64\3\64\3\65\3\65\3\65\3\66\3\66\3\66\3\67\3\67\3\67\38\38\39\39\3"+
-		":\3:\3:\3:\3;\3;\3;\3<\3<\3=\3=\7=\u01d7\n=\f=\16=\u01da\13=\3>\3>\7>"+
+		"*\3*\3+\3+\3+\3+\3+\3+\3+\3+\3+\3+\3+\3+\3+\3,\3,\3,\3,\3,\3,\3-\3-\3"+
+		"-\3.\3.\3/\3/\3\60\3\60\3\61\3\61\3\62\3\62\3\63\3\63\3\64\3\64\3\64\3"+
+		"\65\3\65\3\65\3\66\3\66\3\66\3\67\3\67\38\38\39\39\39\39\3:\3:\3:\3;\3"+
+		";\3<\3<\3<\3<\3<\3<\3<\3<\3=\3=\7=\u01d7\n=\f=\16=\u01da\13=\3>\3>\7>"+
 		"\u01de\n>\f>\16>\u01e1\13>\3>\3>\3?\6?\u01e6\n?\r?\16?\u01e7\3@\6@\u01eb"+
 		"\n@\r@\16@\u01ec\3@\3@\6@\u01f1\n@\r@\16@\u01f2\3A\3A\7A\u01f7\nA\fA\16"+
 		"A\u01fa\13A\3A\3A\3A\3B\3B\7B\u0201\nB\fB\16B\u0204\13B\3B\3B\3B\3C\3"+
@@ -278,10 +288,10 @@ public class LAlgumaLexer extends Lexer {
 		"\2\67\u013d\3\2\2\29\u0141\3\2\2\2;\u0146\3\2\2\2=\u014e\3\2\2\2?\u0151"+
 		"\3\2\2\2A\u0157\3\2\2\2C\u015e\3\2\2\2E\u0163\3\2\2\2G\u0168\3\2\2\2I"+
 		"\u0171\3\2\2\2K\u0176\3\2\2\2M\u0179\3\2\2\2O\u017d\3\2\2\2Q\u0182\3\2"+
-		"\2\2S\u018b\3\2\2\2U\u0194\3\2\2\2W\u01a1\3\2\2\2Y\u01a9\3\2\2\2[\u01af"+
-		"\3\2\2\2]\u01b2\3\2\2\2_\u01b4\3\2\2\2a\u01b6\3\2\2\2c\u01b8\3\2\2\2e"+
-		"\u01ba\3\2\2\2g\u01bc\3\2\2\2i\u01be\3\2\2\2k\u01c1\3\2\2\2m\u01c4\3\2"+
-		"\2\2o\u01c7\3\2\2\2q\u01c9\3\2\2\2s\u01cb\3\2\2\2u\u01cf\3\2\2\2w\u01d2"+
+		"\2\2S\u018b\3\2\2\2U\u0194\3\2\2\2W\u01a1\3\2\2\2Y\u01a7\3\2\2\2[\u01aa"+
+		"\3\2\2\2]\u01ac\3\2\2\2_\u01ae\3\2\2\2a\u01b0\3\2\2\2c\u01b2\3\2\2\2e"+
+		"\u01b4\3\2\2\2g\u01b6\3\2\2\2i\u01b9\3\2\2\2k\u01bc\3\2\2\2m\u01bf\3\2"+
+		"\2\2o\u01c1\3\2\2\2q\u01c3\3\2\2\2s\u01c7\3\2\2\2u\u01ca\3\2\2\2w\u01cc"+
 		"\3\2\2\2y\u01d4\3\2\2\2{\u01db\3\2\2\2}\u01e5\3\2\2\2\177\u01ea\3\2\2"+
 		"\2\u0081\u01f4\3\2\2\2\u0083\u01fe\3\2\2\2\u0085\u0208\3\2\2\2\u0087\u020b"+
 		"\3\2\2\2\u0089\u008a\7c\2\2\u008a\u008b\7n\2\2\u008b\u008c\7i\2\2\u008c"+
@@ -357,22 +367,22 @@ public class LAlgumaLexer extends Lexer {
 		"\7h\2\2\u0195\u0196\7k\2\2\u0196\u0197\7o\2\2\u0197\u0198\7a\2\2\u0198"+
 		"\u0199\7g\2\2\u0199\u019a\7p\2\2\u019a\u019b\7s\2\2\u019b\u019c\7w\2\2"+
 		"\u019c\u019d\7c\2\2\u019d\u019e\7p\2\2\u019e\u019f\7v\2\2\u019f\u01a0"+
-		"\7q\2\2\u01a0V\3\2\2\2\u01a1\u01a2\7t\2\2\u01a2\u01a3\7g\2\2\u01a3\u01a4"+
-		"\7v\2\2\u01a4\u01a5\7q\2\2\u01a5\u01a6\7t\2\2\u01a6\u01a7\7p\2\2\u01a7"+
-		"\u01a8\7g\2\2\u01a8X\3\2\2\2\u01a9\u01aa\7u\2\2\u01aa\u01ab\7g\2\2\u01ab"+
-		"\u01ac\7p\2\2\u01ac\u01ad\7c\2\2\u01ad\u01ae\7q\2\2\u01aeZ\3\2\2\2\u01af"+
-		"\u01b0\7\60\2\2\u01b0\u01b1\7\60\2\2\u01b1\\\3\2\2\2\u01b2\u01b3\7/\2"+
-		"\2\u01b3^\3\2\2\2\u01b4\u01b5\7,\2\2\u01b5`\3\2\2\2\u01b6\u01b7\7\61\2"+
-		"\2\u01b7b\3\2\2\2\u01b8\u01b9\7-\2\2\u01b9d\3\2\2\2\u01ba\u01bb\7(\2\2"+
-		"\u01bbf\3\2\2\2\u01bc\u01bd\7\'\2\2\u01bdh\3\2\2\2\u01be\u01bf\7>\2\2"+
-		"\u01bf\u01c0\7@\2\2\u01c0j\3\2\2\2\u01c1\u01c2\7@\2\2\u01c2\u01c3\7?\2"+
-		"\2\u01c3l\3\2\2\2\u01c4\u01c5\7>\2\2\u01c5\u01c6\7?\2\2\u01c6n\3\2\2\2"+
-		"\u01c7\u01c8\7@\2\2\u01c8p\3\2\2\2\u01c9\u01ca\7>\2\2\u01car\3\2\2\2\u01cb"+
-		"\u01cc\7p\2\2\u01cc\u01cd\7c\2\2\u01cd\u01ce\7q\2\2\u01cet\3\2\2\2\u01cf"+
-		"\u01d0\7q\2\2\u01d0\u01d1\7w\2\2\u01d1v\3\2\2\2\u01d2\u01d3\7g\2\2\u01d3"+
-		"x\3\2\2\2\u01d4\u01d8\t\2\2\2\u01d5\u01d7\t\3\2\2\u01d6\u01d5\3\2\2\2"+
-		"\u01d7\u01da\3\2\2\2\u01d8\u01d6\3\2\2\2\u01d8\u01d9\3\2\2\2\u01d9z\3"+
-		"\2\2\2\u01da\u01d8\3\2\2\2\u01db\u01df\7$\2\2\u01dc\u01de\n\4\2\2\u01dd"+
+		"\7q\2\2\u01a0V\3\2\2\2\u01a1\u01a2\7u\2\2\u01a2\u01a3\7g\2\2\u01a3\u01a4"+
+		"\7p\2\2\u01a4\u01a5\7c\2\2\u01a5\u01a6\7q\2\2\u01a6X\3\2\2\2\u01a7\u01a8"+
+		"\7\60\2\2\u01a8\u01a9\7\60\2\2\u01a9Z\3\2\2\2\u01aa\u01ab\7/\2\2\u01ab"+
+		"\\\3\2\2\2\u01ac\u01ad\7,\2\2\u01ad^\3\2\2\2\u01ae\u01af\7\61\2\2\u01af"+
+		"`\3\2\2\2\u01b0\u01b1\7-\2\2\u01b1b\3\2\2\2\u01b2\u01b3\7(\2\2\u01b3d"+
+		"\3\2\2\2\u01b4\u01b5\7\'\2\2\u01b5f\3\2\2\2\u01b6\u01b7\7>\2\2\u01b7\u01b8"+
+		"\7@\2\2\u01b8h\3\2\2\2\u01b9\u01ba\7@\2\2\u01ba\u01bb\7?\2\2\u01bbj\3"+
+		"\2\2\2\u01bc\u01bd\7>\2\2\u01bd\u01be\7?\2\2\u01bel\3\2\2\2\u01bf\u01c0"+
+		"\7@\2\2\u01c0n\3\2\2\2\u01c1\u01c2\7>\2\2\u01c2p\3\2\2\2\u01c3\u01c4\7"+
+		"p\2\2\u01c4\u01c5\7c\2\2\u01c5\u01c6\7q\2\2\u01c6r\3\2\2\2\u01c7\u01c8"+
+		"\7q\2\2\u01c8\u01c9\7w\2\2\u01c9t\3\2\2\2\u01ca\u01cb\7g\2\2\u01cbv\3"+
+		"\2\2\2\u01cc\u01cd\7t\2\2\u01cd\u01ce\7g\2\2\u01ce\u01cf\7v\2\2\u01cf"+
+		"\u01d0\7q\2\2\u01d0\u01d1\7t\2\2\u01d1\u01d2\7p\2\2\u01d2\u01d3\7g\2\2"+
+		"\u01d3x\3\2\2\2\u01d4\u01d8\t\2\2\2\u01d5\u01d7\t\3\2\2\u01d6\u01d5\3"+
+		"\2\2\2\u01d7\u01da\3\2\2\2\u01d8\u01d6\3\2\2\2\u01d8\u01d9\3\2\2\2\u01d9"+
+		"z\3\2\2\2\u01da\u01d8\3\2\2\2\u01db\u01df\7$\2\2\u01dc\u01de\n\4\2\2\u01dd"+
 		"\u01dc\3\2\2\2\u01de\u01e1\3\2\2\2\u01df\u01dd\3\2\2\2\u01df\u01e0\3\2"+
 		"\2\2\u01e0\u01e2\3\2\2\2\u01e1\u01df\3\2\2\2\u01e2\u01e3\7$\2\2\u01e3"+
 		"|\3\2\2\2\u01e4\u01e6\4\62;\2\u01e5\u01e4\3\2\2\2\u01e6\u01e7\3\2\2\2"+

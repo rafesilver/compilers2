@@ -49,11 +49,27 @@ public class TabelaDeSimbolos {
     private boolean registro = false; 
     // Veja acima sobre a variável 'capivaraNoBarranco'!
     private Integer capivaraNoBarranco = 0;
-    
+
+//--------------------------------------------------------------------------------    
+// Construtor original do código do T2 de CC1    
     public TabelaDeSimbolos(String escopo) {
         simbolos = new ArrayList<EntradaTabelaDeSimbolos>();
         this.escopo = escopo;
     }
+
+//--------------------------------------------------------------------------------    
+// Função/procedimento original do código do T2 de CC1 _com alterações_
+//    
+//      ATELRAÇÕES: Bom, houve várias alterações nesse procedimento... 
+//
+//  1) Funcionalidade 'capivaraNoBarranco' (veja acima ou na documentação) para 
+// cada simbolo adicionado.
+//
+//  2) Quando (registro == true), o código está entre 'registro' e 'fim_registro',
+// ou seja, estamos adicionado os atributos de uma variável. Portanto, se 
+// (registro == true), este procedimento ao invés de adicionar o simbolo na tabela
+// de simbolos, adiciona ele como registro dentro do último símbolo símbolo na
+// tabela.
     
     public void adicionarSimbolo(String nome, String tipo) {
         //System.out.print("\n" + nome + " : " + tipo); 
@@ -79,30 +95,51 @@ public class TabelaDeSimbolos {
         }
         else{
             if(registro == true){
-                if(simbolos.size() == 0)
-                    simbolos.add(new EntradaTabelaDeSimbolos("#temp","registro"));
+                //if(simbolos.size() == 0)
+                    //simbolos.add(new EntradaTabelaDeSimbolos("#temp","registro"));
                 simbolos.get(simbolos.size()-1).addRegistro("."+nome,tipo);
             }
             else
                 simbolos.get(simbolos.size()-1).setNome(nome);
         }
-        if(existeSimbolo(tipo))
-            simbolos.get(simbolos.size()-1).copyRegistro(getSimbolo(tipo));
+
         //System.out.print("\n" + this.toString() + "\n");
     }
-    
+//--------------------------------------------------------------------------------
+//      Por causa da funcionalidade 'capivaraNoBarranco', o símbolo precisa
+// ser adicionado em algumas situações mesmo se houver erro semântico do símbolo
+// já ter sido declarado.
+//      Portanto, a saída mais fácil foi adicionar "só que não" o símbolo,
+// que é este procedimento que chama adicionarSimbolo(), porém logo depois remove
+// o último símbolo adicionado. Desta forma, a funcionalidade 'capivaraNoBarranco'
+// é acionada e funciona normalmente.
+//      Este exemplo é do caso com erro semântico #12:
+//
+//      declare
+//          tVinho, vinho, vinhoCaro: tVinho
+//
+//      Porém, já existe o símbolo tVinho na tabela (como o tipo tVinho), portanto
+// é um erro semântico. Mas é necessário adicionar "só que não" esse segundo 
+// tVinho para atribuir o tipo coretamente em 'vinho' e 'vinhoCaro'.
+//
     public void adicionarSimboloSohQueNao(String nome, String tipo){
         adicionarSimbolo(nome, tipo);
         simbolos.remove(simbolos.size()-1);
-        System.out.print("[só que não ^]\n\n" + this.toString() + "\n");
+        //System.out.print("[só que não ^]\n\n" + this.toString() + "\n");
     }
-    
+
+//--------------------------------------------------------------------------------  
+// Função/procedimento original do código do T2 de CC1
+//
+// OBS.: acho que nem usamos esse procedimento...    
     public void adicionarSimbolos(List<String> nomes, String tipo) {
         for(String s:nomes) {
             simbolos.add(new EntradaTabelaDeSimbolos(s, tipo));
         }
     }
-    
+
+//--------------------------------------------------------------------------------    
+// Função/procedimento original do código do T2 de CC1    
     public boolean existeSimbolo(String nome) {
         for(EntradaTabelaDeSimbolos etds:simbolos) {
             if(etds.getNome().equals(nome)) {
@@ -111,7 +148,12 @@ public class TabelaDeSimbolos {
         }
         return false;
     }
-    
+
+//--------------------------------------------------------------------------------    
+//      Esta função percorre a tabela e retorna o objeto EntradaTabelaDeSimbolos
+// que tenha o nome igual a 'nome'.
+//      Similar à função de mesmo nome da classe PilhaDeTabelas, porém no nível
+// de TabelaDeSimbolos.
     public EntradaTabelaDeSimbolos getSimbolo(String nome){
         for(EntradaTabelaDeSimbolos etds:simbolos) {
             if(etds.getNome().equals(nome)) {
@@ -120,7 +162,11 @@ public class TabelaDeSimbolos {
         }
         return null;    
     }
-    
+
+//--------------------------------------------------------------------------------  
+//      Similar a função acima (getSimbolo), porém ao invés de retornar o objeto
+// EntradaTabelaDeSimbolos, retorna apenas o valor do atributo 'tipo' desse objeto
+// por meio da função getTipo() do objeto.    
     public String getTipo(String nome) {
         for(EntradaTabelaDeSimbolos etds:simbolos) {
             if(etds.getNome().equals(nome)) {
@@ -131,7 +177,18 @@ public class TabelaDeSimbolos {
     }
     
     public void setRegistro(boolean value){
+        if(value == true)
+            if(simbolos.size() > 0){
+                 if(simbolos.get(simbolos.size()-1).getTipo() != "223: 'preencher depois'")
+                    simbolos.add(new EntradaTabelaDeSimbolos("#temp","registro"));}
+            else
+                simbolos.add(new EntradaTabelaDeSimbolos("#temp","registro"));
         registro = value;
+
+    }
+    
+    public List<EntradaTabelaDeSimbolos> getSimbolos(){
+        return simbolos;
     }
     
     public String getTipoRegistro(String nome, String reg){
@@ -147,6 +204,10 @@ public class TabelaDeSimbolos {
         return "224: simbolo nao encontrado";
     }
     
+    public EntradaTabelaDeSimbolos topo(){
+        return simbolos.get(simbolos.size()-1);
+    }
+    
     @Override
     public String toString() {
         String ret = "Escopo: "+escopo;
@@ -154,5 +215,12 @@ public class TabelaDeSimbolos {
             ret += "\n   "+etds;
         }
         return ret;
+    }
+    
+    public boolean checkEscopo(String value){
+        if(value == escopo)
+            return true;
+        else
+            return false;
     }
 }

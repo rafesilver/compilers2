@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  *
- * TO RUN: java -jar "C:\Users\Fuler\Documents\NetBeansProjects\T1_CC2\dist\T1_CC2.jar" "semantico (5).txt" "output.txt"
+ * TO RUN: java -jar "C:\Users\Fuler\Documents\NetBeansProjects\T1_CC2\dist\T1_CC2.jar" "semantico (15).txt" "output.txt"
  * ( 'cd Desktop/TestFolder' before running)
  *
  */

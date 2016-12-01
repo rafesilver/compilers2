@@ -10,7 +10,7 @@ grammar LAlguma;
 @members{
     static String grupo = "<407950 & 407895>"; 
     PilhaDeTabelas pilhaDeTabelas = new PilhaDeTabelas();
-    int tester = 0;
+    int index = -2;
     public void erro(String txt, int line){
         if(ErrorListener.erroMiguezento(txt, line));
             throw new ParseCancellationException(txt);
@@ -57,6 +57,16 @@ grammar LAlguma;
                  + var + reg + " nao declarado");
         }
     }
+	
+    public String getIndex(){return getIndex2(index);}
+    public String getIndex2(int idx){      
+		index = -2; 
+        if(idx < 0){
+            return "";
+		}
+        else
+            return "["+idx+"]";
+    }
     
 }
 
@@ -101,7 +111,7 @@ declaracao_local : 'declare' variavel
                 {
                     // Adicionar símbolo à pilha (se ainda não estiver na tabela)
                     if(!pilhaDeTabelas.existeSimbolo($IDENT.text))
-                        pilhaDeTabelas.topo().adicionarSimbolo($IDENT.text, $tipo_basico.ret);
+                        pilhaDeTabelas.adicionarSimbolo($IDENT.text, $tipo_basico.ret);
                     else
                         // Se o simbolo já está na tabela, é erro semântico
                         ErrorListener.erroSemantico(
@@ -114,7 +124,7 @@ declaracao_local : 'declare' variavel
                 {
                     // Adicionar símbolo à pilha (se ainda não estiver na tabela)
                     if(!pilhaDeTabelas.existeSimbolo($IDENT.text))
-                        pilhaDeTabelas.topo().adicionarSimbolo($IDENT.text, "Tipo");
+                        pilhaDeTabelas.adicionarSimbolo($IDENT.text, "Tipo");
                     else
                         // Se o simbolo já está na tabela, é erro semântico
                         ErrorListener.erroSemantico(
@@ -128,7 +138,7 @@ declaracao_local : 'declare' variavel
 variavel	: IDENT dimensao mais_var ':' tipo 
               {
                if(!pilhaDeTabelas.existeSimbolo($IDENT.text)){                                           
-                    pilhaDeTabelas.topo().adicionarSimbolo($IDENT.text, $tipo.ret);
+                    pilhaDeTabelas.adicionarSimbolo($IDENT.text, $tipo.ret);
                }
                else{
                    ErrorListener.erroSemantico(
@@ -144,7 +154,7 @@ mais_var	: (',' IDENT dimensao
                
                {
                 if(!pilhaDeTabelas.existeSimbolo($IDENT.text))
-                    pilhaDeTabelas.topo().adicionarSimbolo($IDENT.text, "223: 'preencher depois'");
+                    pilhaDeTabelas.adicionarSimbolo($IDENT.text, "223: 'preencher depois'");
                 else
                    ErrorListener.erroSemantico(
                             "Linha " + $IDENT.getLine() + ": identificador "
@@ -167,7 +177,8 @@ outros_ident returns [String ret]
                   dimensao outros_ident {$ret = "."+$IDENT.text;})? ;
 
 // 10.
-dimensao : ('[' exp_aritmetica ']' dimensao)? ;
+dimensao
+        : ({index = -1;}'[' exp_aritmetica ']' dimensao)? ;  //('[' exp_aritmetica ']' dimensao)?
 
 // 11.
 tipo returns [String ret]
@@ -220,39 +231,40 @@ registro	: 'registro' {pilhaDeTabelas.topo().setRegistro(true);}
 declaracao_global :
 
                 'procedimento'
-
-                IDENT '(' parametros_opcional ')' declaracoes_locais comandos 'fim_procedimento'
-
+                
                 {
-                 if(!pilhaDeTabelas.existeSimbolo($IDENT.text))
-                    pilhaDeTabelas.topo().adicionarSimbolo($IDENT.text, "Procedimento");
-                 else
-                    ErrorListener.erroIdentRedeclarado($IDENT.text, $IDENT.getLine());
-                    
-                 // Escopo de Procedimento
+                // Escopo de Procedimento
                     TabelaDeSimbolos outraTabela = new TabelaDeSimbolos("procedimento");
                     pilhaDeTabelas.empilhar(outraTabela);   
                 }
                 
-                
-                    // Fim do Escopo
+                IDENT '(' parametros_opcional {pilhaDeTabelas.setRegistroType();} ')' declaracoes_locais comandos 'fim_procedimento'
+
+                 // Fim do Escopo
                     {pilhaDeTabelas.desempilhar();}
+                
+                {
+                 if(!pilhaDeTabelas.existeSimbolo($IDENT.text))
+                    pilhaDeTabelas.adicionarSimboloComParametro($IDENT.text, "Procedimento");
+                 else
+                    ErrorListener.erroIdentRedeclarado($IDENT.text, $IDENT.getLine());
+                    }
 
 		| 'funcao'
 
                 {
                     // Escopo de Função
-                    TabelaDeSimbolos outraTabela = new TabelaDeSimbolos("função");
+                    TabelaDeSimbolos outraTabela = new TabelaDeSimbolos("#Função");
                     pilhaDeTabelas.empilhar(outraTabela);}
 
-                IDENT '(' parametros_opcional ')' ':' tipo_estendido declaracoes_locais comandos 'fim_funcao'
+                IDENT '(' parametros_opcional {pilhaDeTabelas.setRegistroType();} ')' ':' tipo_estendido declaracoes_locais comandos 'fim_funcao'
 
                 {
                  // Fim do Escopo
                  pilhaDeTabelas.desempilhar();
                  
                  if(!pilhaDeTabelas.existeSimbolo($IDENT.text))
-                    pilhaDeTabelas.topo().adicionarSimbolo($IDENT.text, "Funcao");
+                    pilhaDeTabelas.adicionarSimboloComParametro($IDENT.text, $tipo_estendido.ret);
                  else
                         ErrorListener.erroSemantico(
                             "Linha " + $IDENT.getLine() + ": identificador "
@@ -267,12 +279,12 @@ parametros_opcional : (parametro)? ;
 
 // 21.
 parametro : var_opcional ponteiros_opcionais IDENT dimensao outros_ident mais_ident_param ':' tipo_estendido mais_parametros 
-		{pilhaDeTabelas.topo().adicionarSimbolo($IDENT.text, $tipo_estendido.ret);}
+		{pilhaDeTabelas.adicionarSimbolo($IDENT.text, $tipo_estendido.ret);}
 		;
 
 // 21,5.
 mais_ident_param : (',' ponteiros_opcionais IDENT dimensao outros_ident mais_ident
-			{pilhaDeTabelas.topo().adicionarSimbolo($IDENT.text, "preencher depois");}
+			{pilhaDeTabelas.adicionarSimbolo($IDENT.text, "preencher depois");}
 			)? ;
 
 // 22.
@@ -301,16 +313,18 @@ cmd	: 'leia' '(' identificador mais_ident ')'
 	| '^' IDENT outros_ident dimensao '<-' expressao
          {if(!atribuivel(pilhaDeTabelas.getTipo($IDENT.text), $expressao.ret))
             ErrorListener.erroSemantico("Linha " + $IDENT.getLine()
-             + ": atribuicao nao compativel para ^" + $IDENT.text);
+             + ": atribuicao nao compativel para ^" + $IDENT.text+getIndex());
          }
 	| IDENT '(' argumentos_opcional ')'
         | chamada_atribuicao
         | '(' argumentos_opcional ')'
-	| 'retorne' expressao
+	| RETORNE expressao
+		{if(!pilhaDeTabelas.topo().checkEscopo("#Função")){ErrorListener.erroSemantico("Linha "+$RETORNE.getLine()+": comando retorne nao permitido nesse escopo");}}
 	;
 
 // 28.
-mais_expressao	: (',' expressao mais_expressao)? ;
+mais_expressao returns [String ret] // <- arrumar
+            : (',' expressao mais_expressao {$ret = $expressao.ret;})? ;
 
 // 29.
 senao_opcional	: ('senao' comandos)? ;
@@ -318,15 +332,18 @@ senao_opcional	: ('senao' comandos)? ;
 // 30.
 chamada_atribuicao : IDENT outros_ident dimensao '<-' expressao
                    {
-                        if($outros_ident.ret == null){
-                            if(!atribuivel(pilhaDeTabelas.getTipo($IDENT.text), $expressao.ret))
-                                ErrorListener.erroSemantico("Linha " + $IDENT.getLine()
-                                 + ": atribuicao nao compativel para " + $IDENT.text);                         
-                        }
-                        else
-                            if(!atribuivel(pilhaDeTabelas.getTipoRegistro($IDENT.text, $outros_ident.ret), $expressao.ret))
-                                ErrorListener.erroSemantico("Linha " + $IDENT.getLine()
-                                 + ": atribuicao nao compativel para " + $IDENT.text + $outros_ident.ret);   
+						if(!pilhaDeTabelas.existeSimbolo($IDENT.text))
+							ErrorListener.erroSemantico("Linha "+$IDENT.getLine()+": identificador "+ $IDENT.text+" nao declarado");
+						else
+							if($outros_ident.ret == null){
+								if(!atribuivel(pilhaDeTabelas.getTipo($IDENT.text), $expressao.ret))
+									ErrorListener.erroSemantico("Linha " + $IDENT.getLine()
+									 + ": atribuicao nao compativel para " + $IDENT.text+getIndex());                         
+							}
+							else
+								if(!atribuivel(pilhaDeTabelas.getTipoRegistro($IDENT.text, $outros_ident.ret), $expressao.ret))
+									ErrorListener.erroSemantico("Linha " + $IDENT.getLine()
+									 + ": atribuicao nao compativel para " + $IDENT.text + $outros_ident.ret);   
                     }
                    ;
 
@@ -400,14 +417,31 @@ parcela_unario returns [String ret]
                 : '^' IDENT outros_ident dimensao
                   {declarado($IDENT.text, $outros_ident.ret, $IDENT.getLine());}
                   {$ret = pilhaDeTabelas.getTipo($IDENT.text);}
-		| IDENT '(' expressao mais_expressao ')' {System.out.print("*");}
+		| IDENT
+                   {pilhaDeTabelas.argz.clear();}
+                    '(' expressao mais_expressao ')' 
+
                   {if(!pilhaDeTabelas.existeSimbolo($IDENT.text)){ErrorListener.erroSemantico("Linha "+$IDENT.getLine()+": identificador "+ $IDENT.text+" nao declarado");}}
                   {$ret = pilhaDeTabelas.getTipo($IDENT.text);}
+                    {
+                        if(pilhaDeTabelas.getSimbolo($IDENT.text) != null){
+                            List<EntradaTabelaDeSimbolos> expected = pilhaDeTabelas.getSimbolo($IDENT.text).getRegistro();
+                            if(expected.size() != pilhaDeTabelas.argz.size())
+                                ErrorListener.erroSemantico("Linha "+$IDENT.getLine()+": incompatibilidade de parametros na chamada de "+ $IDENT.text);
+                            else
+                                for(int i = 0; i < expected.size(); i++){
+                                    if(!expected.get(i).getTipo().equals(pilhaDeTabelas.argz.get(i).getTipo())){
+										System.out.print("?");
+                                        ErrorListener.erroSemantico("Linha "+$IDENT.getLine()+": incompatibilidade de parametros na chamada de "+ $IDENT.text);
+									}
+                                }
+                        }    
+                    }
 		| chamada_partes {$ret = $chamada_partes.ret;}
                 | IDENT
                   {if(!pilhaDeTabelas.existeSimbolo($IDENT.text)){ErrorListener.erroSemantico("Linha "+$IDENT.getLine()+": identificador "+ $IDENT.text+" nao declarado");}}
                   {$ret = pilhaDeTabelas.getTipo($IDENT.text);}
-		| NUM_INT {$ret = "inteiro";}
+		| NUM_INT {$ret = "inteiro"; if(index>-2){index = Integer.parseInt($NUM_INT.text);}}
 		| NUM_REAL {$ret = "real";}
 		| '(' expressao ')' {$ret = $expressao.ret;}
 		;
@@ -457,7 +491,9 @@ op_relacional	: '='
 // 54.
 expressao returns [String ret]	
         : termo_logico outros_termos_logicos 
-        {$ret = $termo_logico.ret;};
+        {pilhaDeTabelas.argz.add(new EntradaTabelaDeSimbolos("#arg",$termo_logico.ret));}
+        {$ret = $termo_logico.ret;}
+        ;
 
 // 55.
 op_nao	: ('nao')? ;
@@ -485,6 +521,8 @@ parcela_logica returns [String ret]
 		;
 
 // OUTROS
+
+RETORNE : 'retorne';
 
 IDENT	: ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '0'..'9' | '_')* ;
 
