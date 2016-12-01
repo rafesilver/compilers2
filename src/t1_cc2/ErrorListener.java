@@ -51,7 +51,7 @@ class ErrorListener implements ANTLRErrorListener {
         }
         
         public static void erroSemantico(String texto){
-            if(out.encontrouErro("sintatico"))
+            if(out.encontrouErro("sintatico")) //vai dar pau
                 System.out.print("");
                out.println("semantico", texto + "\n");
         }

@@ -100,7 +100,6 @@ public class LAlgumaLexer extends Lexer {
 	    static String grupo = "<407950 & 407895>"; 
 	    PilhaDeTabelas pilhaDeTabelas = new PilhaDeTabelas();
 	    int tester = 0;
-	    
 	    public void erro(String txt, int line){
 	        if(ErrorListener.erroMiguezento(txt, line));
 	            throw new ParseCancellationException(txt);
@@ -124,6 +123,28 @@ public class LAlgumaLexer extends Lexer {
 	                return true;
 	            else
 	                return false;
+	    }
+	    
+	    public void declarado(String var, String reg, int line){
+	        if (reg == null){
+	            System.out.print(""); // ESSA LINHA É IMPORTANTE
+	            if(!pilhaDeTabelas.existeSimbolo(var))
+	                ErrorListener.erroSemantico(
+	                 "Linha " + line + ": identificador "
+	                 + var + " nao declarado");
+			}
+	        else{
+	            System.out.print(""); // ESSA LINHA É IMPORTANTE
+	                                  // NÃO REMOVA
+	                                  // NÃO SEI PORQUE ELA FAZ AS COISAS FUNCIONAR
+	                                  // MAS FAZ
+	                                  // #EhNóis
+	            if(pilhaDeTabelas.getTipoRegistro(var, reg)
+	             == "224: simbolo nao encontrado")
+	                ErrorListener.erroSemantico(
+	                 "Linha " + line + ": identificador "
+	                 + var + reg + " nao declarado");
+	        }
 	    }
 	    
 

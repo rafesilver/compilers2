@@ -218,6 +218,16 @@ public interface LAlgumaListener extends ParseTreeListener {
 	 */
 	void exitParametro(LAlgumaParser.ParametroContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link LAlgumaParser#mais_ident_param}.
+	 * @param ctx the parse tree
+	 */
+	void enterMais_ident_param(LAlgumaParser.Mais_ident_paramContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link LAlgumaParser#mais_ident_param}.
+	 * @param ctx the parse tree
+	 */
+	void exitMais_ident_param(LAlgumaParser.Mais_ident_paramContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link LAlgumaParser#var_opcional}.
 	 * @param ctx the parse tree
 	 */

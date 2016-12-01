@@ -58,6 +58,10 @@ public class PilhaDeTabelas {
         TabelaDeSimbolos ret = pilha.pop();
         //Saida.println(ret.toString());
     }
+    
+    public void parametrizador(){
+        
+    }
 
     public List getTodasTabelas() {
         return pilha;

@@ -268,6 +268,18 @@ public class LAlgumaBaseListener implements LAlgumaListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterMais_ident_param(LAlgumaParser.Mais_ident_paramContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitMais_ident_param(LAlgumaParser.Mais_ident_paramContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterVar_opcional(LAlgumaParser.Var_opcionalContext ctx) { }
 	/**
 	 * {@inheritDoc}

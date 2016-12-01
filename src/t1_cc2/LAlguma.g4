@@ -11,7 +11,6 @@ grammar LAlguma;
     static String grupo = "<407950 & 407895>"; 
     PilhaDeTabelas pilhaDeTabelas = new PilhaDeTabelas();
     int tester = 0;
-    
     public void erro(String txt, int line){
         if(ErrorListener.erroMiguezento(txt, line));
             throw new ParseCancellationException(txt);
@@ -35,6 +34,28 @@ grammar LAlguma;
                 return true;
             else
                 return false;
+    }
+    
+    public void declarado(String var, String reg, int line){
+        if (reg == null){
+            System.out.print(""); // ESSA LINHA É IMPORTANTE
+            if(!pilhaDeTabelas.existeSimbolo(var))
+                ErrorListener.erroSemantico(
+                 "Linha " + line + ": identificador "
+                 + var + " nao declarado");
+		}
+        else{
+            System.out.print(""); // ESSA LINHA É IMPORTANTE
+                                  // NÃO REMOVA
+                                  // NÃO SEI PORQUE ELA FAZ AS COISAS FUNCIONAR
+                                  // MAS FAZ
+                                  // #EhNóis
+            if(pilhaDeTabelas.getTipoRegistro(var, reg)
+             == "224: simbolo nao encontrado")
+                ErrorListener.erroSemantico(
+                 "Linha " + line + ": identificador "
+                 + var + reg + " nao declarado");
+        }
     }
     
 }
@@ -133,16 +154,8 @@ mais_var	: (',' IDENT dimensao
                mais_var)? ;
 
 // 7.
-identificador	: ponteiros_opcionais IDENT 
-                  dimensao outros_ident
-                  {
-                    if ($outros_ident.ret == null)
-                        if(!pilhaDeTabelas.existeSimbolo($IDENT.text))
-                            ErrorListener.erroSemantico(
-                            "Linha " + $IDENT.getLine() + ": identificador "
-                            + $IDENT.text + " nao declarado");
-                    //else
-                  }
+identificador	: ponteiros_opcionais IDENT dimensao outros_ident
+                  {declarado($IDENT.text, $outros_ident.ret, $IDENT.getLine());}
                 ;
 
 // 8.
@@ -178,7 +191,7 @@ tipo_basico returns [String ret]
 // 15.
 tipo_basico_ident returns [String ret]
                   : tipo_basico {$ret = $tipo_basico.ret;}
-                  | IDENT 
+                  | IDENT
                   {
                    if(!pilhaDeTabelas.existeSimbolo($IDENT.text))
                         ErrorListener.erroSemantico(
@@ -253,7 +266,14 @@ declaracao_global :
 parametros_opcional : (parametro)? ;
 
 // 21.
-parametro : var_opcional identificador mais_ident ':' tipo_estendido mais_parametros ;
+parametro : var_opcional ponteiros_opcionais IDENT dimensao outros_ident mais_ident_param ':' tipo_estendido mais_parametros 
+		{pilhaDeTabelas.topo().adicionarSimbolo($IDENT.text, $tipo_estendido.ret);}
+		;
+
+// 21,5.
+mais_ident_param : (',' ponteiros_opcionais IDENT dimensao outros_ident mais_ident
+			{pilhaDeTabelas.topo().adicionarSimbolo($IDENT.text, "preencher depois");}
+			)? ;
 
 // 22.
 var_opcional : ('var')? ;
@@ -378,11 +398,12 @@ parcela	returns [String ret]
 // 47.
 parcela_unario returns [String ret]
                 : '^' IDENT outros_ident dimensao
+                  {declarado($IDENT.text, $outros_ident.ret, $IDENT.getLine());}
+                  {$ret = pilhaDeTabelas.getTipo($IDENT.text);}
+		| IDENT '(' expressao mais_expressao ')' {System.out.print("*");}
                   {if(!pilhaDeTabelas.existeSimbolo($IDENT.text)){ErrorListener.erroSemantico("Linha "+$IDENT.getLine()+": identificador "+ $IDENT.text+" nao declarado");}}
                   {$ret = pilhaDeTabelas.getTipo($IDENT.text);}
-		| IDENT chamada_partes
-                  {if(!pilhaDeTabelas.existeSimbolo($IDENT.text)){ErrorListener.erroSemantico("Linha "+$IDENT.getLine()+": identificador "+ $IDENT.text+" nao declarado");}}
-                  {$ret = pilhaDeTabelas.getTipo($IDENT.text);}
+		| chamada_partes {$ret = $chamada_partes.ret;}
                 | IDENT
                   {if(!pilhaDeTabelas.existeSimbolo($IDENT.text)){ErrorListener.erroSemantico("Linha "+$IDENT.getLine()+": identificador "+ $IDENT.text+" nao declarado");}}
                   {$ret = pilhaDeTabelas.getTipo($IDENT.text);}
@@ -401,8 +422,10 @@ parcela_nao_unario returns [String ret]
 outras_parcelas	: ('%' parcela outras_parcelas)? ;
 
 // 50.
-chamada_partes	: '(' expressao mais_expressao ')'
-		| outros_ident dimensao
+chamada_partes	returns [String ret]
+		: IDENT outros_ident dimensao
+		{declarado($IDENT.text, $outros_ident.ret, $IDENT.getLine());}
+		{$ret = pilhaDeTabelas.getTipoRegistro($IDENT.text,$outros_ident.ret);}
 		;
 // 51.
 exp_relacional returns [String ret]

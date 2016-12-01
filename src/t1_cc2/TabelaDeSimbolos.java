@@ -88,7 +88,7 @@ public class TabelaDeSimbolos {
         }
         if(existeSimbolo(tipo))
             simbolos.get(simbolos.size()-1).copyRegistro(getSimbolo(tipo));
-        System.out.print("\n" + this.toString() + "\n");
+        //System.out.print("\n" + this.toString() + "\n");
     }
     
     public void adicionarSimboloSohQueNao(String nome, String tipo){
@@ -135,11 +135,14 @@ public class TabelaDeSimbolos {
     }
     
     public String getTipoRegistro(String nome, String reg){
-        for(EntradaTabelaDeSimbolos etds:simbolos)
-            if(etds.getNome().equals(nome))
-                for(int i = 0; i < etds.getRegistro().size(); i++)
-                    if(etds.getRegistro().get(i).getNome().equals(reg))
-                        return etds.getRegistro().get(i).getTipo();
+        if(reg == null)
+            return getTipo(nome);
+        else
+            for(EntradaTabelaDeSimbolos etds:simbolos)
+                if(etds.getNome().equals(nome))
+                    for(int i = 0; i < etds.getRegistro().size(); i++)
+                        if(etds.getRegistro().get(i).getNome().equals(reg))
+                            return etds.getRegistro().get(i).getTipo();
 
         return "224: simbolo nao encontrado";
     }
