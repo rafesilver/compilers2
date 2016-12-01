@@ -125,6 +125,7 @@ public class LAlgumaLexer extends Lexer {
 	            else
 	                return false;
 	    }
+	    
 
 
 	public LAlgumaLexer(CharStream input) {

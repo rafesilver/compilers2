@@ -46,6 +46,7 @@ import java.util.List;
 public class TabelaDeSimbolos {
     private String escopo;
     private List<EntradaTabelaDeSimbolos> simbolos;
+    private boolean registro = false; 
     // Veja acima sobre a variável 'capivaraNoBarranco'!
     private Integer capivaraNoBarranco = 0;
     
@@ -55,17 +56,45 @@ public class TabelaDeSimbolos {
     }
     
     public void adicionarSimbolo(String nome, String tipo) {
-        simbolos.add(new EntradaTabelaDeSimbolos(nome,tipo));
-        if(tipo == "223: 'preencher depois'")
-            capivaraNoBarranco++;
-        else
-            if(capivaraNoBarranco > 0){
-                for(int i=0; i<capivaraNoBarranco; i++){
-                    simbolos.get(simbolos.size() -i -2).setTipo(tipo);
-                }
-                capivaraNoBarranco = 0;
+        //System.out.print("\n" + nome + " : " + tipo); 
+        if(registro == false && tipo != "Tipo"){
+            simbolos.add(new EntradaTabelaDeSimbolos(nome,tipo));
+            if(tipo == "223: 'preencher depois'")
+                capivaraNoBarranco++;
+            else
+                if(capivaraNoBarranco > 0){
+                    for(int i=0; i<capivaraNoBarranco; i++){
+                        simbolos.get(simbolos.size() -i -2).setTipo(tipo);
+                        if(existeSimbolo(tipo))
+                            simbolos.get(simbolos.size() -i -2).copyRegistro(getSimbolo(tipo));
+                    }
+                    if(tipo == "registro"){
+                        simbolos.get(simbolos.size() -1).copyRegistro(simbolos.get(simbolos.size() -2));
+                        if(capivaraNoBarranco > 1)
+                            for(int i=3; i<capivaraNoBarranco+2; i++)
+                                simbolos.get(simbolos.size() -i).copyRegistro(simbolos.get(simbolos.size() -2));
+                    }
+                    capivaraNoBarranco = 0;
+                }        
+        }
+        else{
+            if(registro == true){
+                if(simbolos.size() == 0)
+                    simbolos.add(new EntradaTabelaDeSimbolos("#temp","registro"));
+                simbolos.get(simbolos.size()-1).addRegistro("."+nome,tipo);
             }
-        //System.out.print("\n" + this.toString() + "\n");
+            else
+                simbolos.get(simbolos.size()-1).setNome(nome);
+        }
+        if(existeSimbolo(tipo))
+            simbolos.get(simbolos.size()-1).copyRegistro(getSimbolo(tipo));
+        System.out.print("\n" + this.toString() + "\n");
+    }
+    
+    public void adicionarSimboloSohQueNao(String nome, String tipo){
+        adicionarSimbolo(nome, tipo);
+        simbolos.remove(simbolos.size()-1);
+        System.out.print("[só que não ^]\n\n" + this.toString() + "\n");
     }
     
     public void adicionarSimbolos(List<String> nomes, String tipo) {
@@ -83,12 +112,35 @@ public class TabelaDeSimbolos {
         return false;
     }
     
+    public EntradaTabelaDeSimbolos getSimbolo(String nome){
+        for(EntradaTabelaDeSimbolos etds:simbolos) {
+            if(etds.getNome().equals(nome)) {
+                return etds;
+            }
+        }
+        return null;    
+    }
+    
     public String getTipo(String nome) {
         for(EntradaTabelaDeSimbolos etds:simbolos) {
             if(etds.getNome().equals(nome)) {
                 return etds.getTipo();
             }
         }
+        return "224: simbolo nao encontrado";
+    }
+    
+    public void setRegistro(boolean value){
+        registro = value;
+    }
+    
+    public String getTipoRegistro(String nome, String reg){
+        for(EntradaTabelaDeSimbolos etds:simbolos)
+            if(etds.getNome().equals(nome))
+                for(int i = 0; i < etds.getRegistro().size(); i++)
+                    if(etds.getRegistro().get(i).getNome().equals(reg))
+                        return etds.getRegistro().get(i).getTipo();
+
         return "224: simbolo nao encontrado";
     }
     

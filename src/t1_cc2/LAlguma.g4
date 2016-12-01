@@ -36,6 +36,7 @@ grammar LAlguma;
             else
                 return false;
     }
+    
 }
 
 //-------------------------------------------------------
@@ -105,19 +106,15 @@ declaracao_local : 'declare' variavel
 // 5.
 variavel	: IDENT dimensao mais_var ':' tipo 
               {
-               if(!pilhaDeTabelas.existeSimbolo($IDENT.text)){                                            
-                   //if(nomeReg.equals(""))
-                       pilhaDeTabelas.topo().adicionarSimbolo($IDENT.text, $tipo.ret);
-                       //System.out.print($tipo.ret);
-                   //else
-                   //    pilhaDeTabelas.topo().adicionarSimbolo(
-                   //    (nomeReg + "." + $IDENT.text), "Variavel");
+               if(!pilhaDeTabelas.existeSimbolo($IDENT.text)){                                           
+                    pilhaDeTabelas.topo().adicionarSimbolo($IDENT.text, $tipo.ret);
                }
-               else
+               else{
                    ErrorListener.erroSemantico(
                             "Linha " + $IDENT.getLine() + ": identificador "
                             + $IDENT.text + " ja declarado anteriormente");
-              //System.out.print(pilhaDeTabelas.topo().toString());
+                   pilhaDeTabelas.topo().adicionarSimboloSohQueNao($IDENT.text, $tipo.ret);  
+                }
               }
             ;
 
@@ -137,26 +134,31 @@ mais_var	: (',' IDENT dimensao
 
 // 7.
 identificador	: ponteiros_opcionais IDENT 
+                  dimensao outros_ident
                   {
-                    if(!pilhaDeTabelas.existeSimbolo($IDENT.text))
-                        ErrorListener.erroSemantico(
-                        "Linha " + $IDENT.getLine() + ": identificador "
-                        + $IDENT.text + " nao declarado");
+                    if ($outros_ident.ret == null)
+                        if(!pilhaDeTabelas.existeSimbolo($IDENT.text))
+                            ErrorListener.erroSemantico(
+                            "Linha " + $IDENT.getLine() + ": identificador "
+                            + $IDENT.text + " nao declarado");
+                    //else
                   }
-                  dimensao outros_ident ;
+                ;
 
 // 8.
 ponteiros_opcionais : ('^' ponteiros_opcionais)? ;
 
 // 9.
-outros_ident : ('.' identificador)? ;
+outros_ident returns [String ret]
+            : ('.' ponteiros_opcionais IDENT 
+                  dimensao outros_ident {$ret = "."+$IDENT.text;})? ;
 
 // 10.
 dimensao : ('[' exp_aritmetica ']' dimensao)? ;
 
 // 11.
 tipo returns [String ret]
-        : registro
+        : registro {$ret = "registro";}
         | tipo_estendido {$ret = $tipo_estendido.ret;}
         ;
 
@@ -182,6 +184,7 @@ tipo_basico_ident returns [String ret]
                         ErrorListener.erroSemantico(
                         "Linha " + $IDENT.getLine() + ": tipo "
                         + $IDENT.text + " nao declarado");
+                   $ret = $IDENT.text;
                   }
                   ;
 
@@ -195,7 +198,10 @@ tipo_estendido returns [String ret]
 valor_constante : CADEIA | NUM_INT | NUM_REAL | 'verdadeiro' | 'falso' ;
 
 // 18.
-registro	: 'registro' variavel mais_variaveis 'fim_registro' ;
+registro	: 'registro' {pilhaDeTabelas.topo().setRegistro(true);}
+                variavel mais_variaveis
+                'fim_registro' {pilhaDeTabelas.topo().setRegistro(false);}
+                ;
 
 // 19.
 declaracao_global :
@@ -277,11 +283,9 @@ cmd	: 'leia' '(' identificador mais_ident ')'
             ErrorListener.erroSemantico("Linha " + $IDENT.getLine()
              + ": atribuicao nao compativel para ^" + $IDENT.text);
          }
-	| IDENT chamada_atribuicao
-        {if(!atribuivel(pilhaDeTabelas.getTipo($IDENT.text), $chamada_atribuicao.ret))
-            ErrorListener.erroSemantico("Linha " + $IDENT.getLine()
-             + ": atribuicao nao compativel para " + $IDENT.text);
-         }
+	| IDENT '(' argumentos_opcional ')'
+        | chamada_atribuicao
+        | '(' argumentos_opcional ')'
 	| 'retorne' expressao
 	;
 
@@ -292,12 +296,19 @@ mais_expressao	: (',' expressao mais_expressao)? ;
 senao_opcional	: ('senao' comandos)? ;
 
 // 30.
-chamada_atribuicao returns [String ret]
-                    : '(' argumentos_opcional ')' {$ret = "220: missing";}
-                    | outros_ident dimensao '<-' expressao
-                    {$ret = $expressao.ret;}
-
-                    ;
+chamada_atribuicao : IDENT outros_ident dimensao '<-' expressao
+                   {
+                        if($outros_ident.ret == null){
+                            if(!atribuivel(pilhaDeTabelas.getTipo($IDENT.text), $expressao.ret))
+                                ErrorListener.erroSemantico("Linha " + $IDENT.getLine()
+                                 + ": atribuicao nao compativel para " + $IDENT.text);                         
+                        }
+                        else
+                            if(!atribuivel(pilhaDeTabelas.getTipoRegistro($IDENT.text, $outros_ident.ret), $expressao.ret))
+                                ErrorListener.erroSemantico("Linha " + $IDENT.getLine()
+                                 + ": atribuicao nao compativel para " + $IDENT.text + $outros_ident.ret);   
+                    }
+                   ;
 
 // 31.
 argumentos_opcional : (expressao mais_expressao)? ;

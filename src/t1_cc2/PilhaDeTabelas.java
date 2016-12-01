@@ -44,6 +44,15 @@ public class PilhaDeTabelas {
         }
         return "224: simbolo nao encontrado";
     }
+    
+    public String getTipoRegistro(String name, String reg){
+        for (TabelaDeSimbolos ts : pilha){
+            String ret = ts.getTipoRegistro(name, reg);
+            if(ret != "224: simbolo nao encontrado")
+                return ret;
+        }
+        return "224: simbolo nao encontrado";
+    }
 
     public void desempilhar() {
         TabelaDeSimbolos ret = pilha.pop();
