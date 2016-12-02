@@ -10,7 +10,7 @@ import java.util.List;
 /**
  *
  * Arquivo fornecido no Trabalho 2 da disciplina Construção de Compiladores 1.
- * 
+ *                                              (mas com diversas alterações!!!)
  * 
  * ATENÇÃO:
  *          Alteração para incluir a funcionalidade 'Capivara no Barranco'
@@ -51,13 +51,17 @@ public class TabelaDeSimbolos {
     private Integer capivaraNoBarranco = 0;
 
 //--------------------------------------------------------------------------------    
+//                              C O N S T R U T O R
+//--------------------------------------------------------------------------------        
 // Construtor original do código do T2 de CC1    
     public TabelaDeSimbolos(String escopo) {
         simbolos = new ArrayList<EntradaTabelaDeSimbolos>();
         this.escopo = escopo;
     }
 
-//--------------------------------------------------------------------------------    
+//-------------------------------------------------------------------------------- 
+//                      A D I C I O N A R   S I M B O L O
+//--------------------------------------------------------------------------------     
 // Função/procedimento original do código do T2 de CC1 _com alterações_
 //    
 //      ATELRAÇÕES: Bom, houve várias alterações nesse procedimento... 
@@ -70,6 +74,10 @@ public class TabelaDeSimbolos {
 // (registro == true), este procedimento ao invés de adicionar o simbolo na tabela
 // de simbolos, adiciona ele como registro dentro do último símbolo símbolo na
 // tabela.
+//
+//  3) Ao terminar de inserir os atribuitos de um registro, ao invés da função
+// adicionar o símbolo do registro, ela apenas troca o nome do símbolo temporário
+// no qual os atribuitos foram inseridos para o nome correto.
     
     public void adicionarSimbolo(String nome, String tipo) {
         //System.out.print("\n" + nome + " : " + tipo); 
@@ -106,6 +114,9 @@ public class TabelaDeSimbolos {
         //System.out.print("\n" + this.toString() + "\n");
     }
 //--------------------------------------------------------------------------------
+//                      A D I C I O N A R   S I M B O L O
+//                          ( S Ó   Q U E   N Ã O)    
+//--------------------------------------------------------------------------------    
 //      Por causa da funcionalidade 'capivaraNoBarranco', o símbolo precisa
 // ser adicionado em algumas situações mesmo se houver erro semântico do símbolo
 // já ter sido declarado.
@@ -129,16 +140,21 @@ public class TabelaDeSimbolos {
     }
 
 //--------------------------------------------------------------------------------  
+//                      A D I C I O N A R   S I M B O L O >S<  
+//                              ( n ã o   u s a d a )
+//--------------------------------------------------------------------------------      
 // Função/procedimento original do código do T2 de CC1
 //
-// OBS.: acho que nem usamos esse procedimento...    
+// OBS.: acho que não usamos esse procedimento...    
     public void adicionarSimbolos(List<String> nomes, String tipo) {
         for(String s:nomes) {
             simbolos.add(new EntradaTabelaDeSimbolos(s, tipo));
         }
     }
 
-//--------------------------------------------------------------------------------    
+//--------------------------------------------------------------------------------  
+//                      E X I S T E   S I M B O L O ?  
+//--------------------------------------------------------------------------------      
 // Função/procedimento original do código do T2 de CC1    
     public boolean existeSimbolo(String nome) {
         for(EntradaTabelaDeSimbolos etds:simbolos) {
@@ -149,7 +165,9 @@ public class TabelaDeSimbolos {
         return false;
     }
 
-//--------------------------------------------------------------------------------    
+//--------------------------------------------------------------------------------  
+//                          G E T   S I M B O L O    
+//--------------------------------------------------------------------------------  
 //      Esta função percorre a tabela e retorna o objeto EntradaTabelaDeSimbolos
 // que tenha o nome igual a 'nome'.
 //      Similar à função de mesmo nome da classe PilhaDeTabelas, porém no nível
@@ -164,6 +182,8 @@ public class TabelaDeSimbolos {
     }
 
 //--------------------------------------------------------------------------------  
+//                              G E T   T I P O
+//--------------------------------------------------------------------------------      
 //      Similar a função acima (getSimbolo), porém ao invés de retornar o objeto
 // EntradaTabelaDeSimbolos, retorna apenas o valor do atributo 'tipo' desse objeto
 // por meio da função getTipo() do objeto.    
@@ -175,7 +195,17 @@ public class TabelaDeSimbolos {
         }
         return "224: simbolo nao encontrado";
     }
-    
+
+//--------------------------------------------------------------------------------
+//                            S E T   R E G I S T R O
+//--------------------------------------------------------------------------------
+//      Função para atribuir o valor a variável auxiliar 'registro' dessa classe
+// TabelaDeSimbolos.
+//      Além de fazer a atribuição, esta função também adiciona um símbolo
+// "temporário" na TabelaDeSimbolos, para inserir os atributos do registro nele.
+// Eventualmente, o procedimento adicionarSimbolo() irá renomear este símbolo
+// temporário.
+//    
     public void setRegistro(boolean value){
         if(value == true)
             if(simbolos.size() > 0){
@@ -187,9 +217,35 @@ public class TabelaDeSimbolos {
 
     }
     
+//--------------------------------------------------------------------------------
+//                          G E T   S I M B O L O S
+//--------------------------------------------------------------------------------
+//      Essa função retorna o próprio objeto 'simbolos', ou seja, a lista das
+// EntradaTabelaDeSimbolos.    
     public List<EntradaTabelaDeSimbolos> getSimbolos(){
         return simbolos;
     }
+
+//--------------------------------------------------------------------------------
+//                      G E T   T I P O -> R E G I S T R O
+//--------------------------------------------------------------------------------
+//      Similar a função getTipo(), porém esta função retorna o tipo de um atributo
+// específico do símbolo em questão.
+//
+//  EXEMPLO:
+//
+//      declare
+//          var1 : registro    
+//                    x : inteiro
+//                    y : real
+//                    z : literal
+//                  fim_registro  
+//
+//      Nesse exemplo:
+//          getTipo("var1","x") retornará "inteiro" 
+//          getTipo("var1","y") retornará "real"
+//          getTipo("var1","z") retornará "literal"
+//          getTipo("var1","w") retornará "224: simbolo nao encontrado"
     
     public String getTipoRegistro(String nome, String reg){
         if(reg == null)
@@ -203,11 +259,21 @@ public class TabelaDeSimbolos {
 
         return "224: simbolo nao encontrado";
     }
-    
+ 
+//--------------------------------------------------------------------------------
+//                             G E T   T O P O 
+//--------------------------------------------------------------------------------
+//      Similar a função topo() da classe TabelaDeSimbolos, esta função retorna
+// o último elemento de 'simbolos', ou seja, a última EntradaTabelaDeSimbolos que
+// foi adicionada na tabela.
     public EntradaTabelaDeSimbolos topo(){
         return simbolos.get(simbolos.size()-1);
     }
-    
+
+//--------------------------------------------------------------------------------
+//                            T O   S T R I N G
+//--------------------------------------------------------------------------------
+// Função/procedimento original do código do T2 de CC1   
     @Override
     public String toString() {
         String ret = "Escopo: "+escopo;
@@ -216,7 +282,12 @@ public class TabelaDeSimbolos {
         }
         return ret;
     }
-    
+
+//-------------------------------------------------------------------------------- 
+//                          C H E C K   E S C O P O
+//--------------------------------------------------------------------------------     
+//      Essa simples função retorna verdadeiro caso o escopo da tabela é igual a
+// String passada como argumento, e falso caso contrário.    
     public boolean checkEscopo(String value){
         if(value == escopo)
             return true;

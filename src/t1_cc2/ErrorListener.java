@@ -16,21 +16,26 @@ import org.antlr.v4.runtime.atn.ATNConfigSet;
 import org.antlr.v4.runtime.dfa.DFA;
 
 /**
- *
  * @author G10
  */
 class ErrorListener implements ANTLRErrorListener {
     private static Saida out;
 
+//-------------------------------------------------------------------------------- 
+//                      C O N S T R U T O R
+//--------------------------------------------------------------------------------      
     public ErrorListener(Saida out) {
         this.out = out;
     }
-  
-    //      Este método é para os casos específicos de não fechar comentário
-    // ou qualquer outro token perdido no código (como quando não fecha as aspas)
-    //      Provavelmente há milhares de maneiras de fazer isso funcionar de uma
-    // forma menos precária, mas é issae que tem pra hoje.
-    //      #ehnois
+    
+//-------------------------------------------------------------------------------- 
+//                  E R R O   M I G U E Z E N T O
+//--------------------------------------------------------------------------------    
+//      Este método é para os casos específicos de não fechar comentário
+// ou qualquer outro token perdido no código (como quando não fecha as aspas)
+//      Provavelmente há milhares de maneiras de fazer isso funcionar de uma
+// forma menos precária, mas é issae que tem pra hoje.
+
     public static boolean erroMiguezento(String token, int linha){   
         if(!out.encontrouErro("sintatico")){
             out.println("sintatico","Linha " + linha + ": " + token + "\n");//"sintatico", "Linha "+linha+": comentario nao fechado");
@@ -39,52 +44,23 @@ class ErrorListener implements ANTLRErrorListener {
         return false;
     }
     
-    public static void erroIdentRedeclarado(String token, int linha){
-        // https://www.dicio.com.br/redeclarar/
-        if(out.encontrouErro("sintatico"))    
-           out.println("semantico", "Linha "+linha+": identificador "+token+" ja declarado anteriormente");
-    }
-    
-        public static void erroIdentIndeclarado(String token, int linha){
-            if(out.encontrouErro("sintatico"))    
-               out.println("semantico", "Linha "+linha+": identificador "+token+" nao declarado");
-        }
-        
+//-------------------------------------------------------------------------------- 
+//                      E R R O   S E M A N T I C O
+//--------------------------------------------------------------------------------     
+//      Este procedimento faz um Saida.println(), passando como argumento não só
+// o erro, mas explicitando que o erro foi semantico.
+//
         public static void erroSemantico(String texto){
-            if(out.encontrouErro("sintatico")) //vai dar pau
-                System.out.print("");
                out.println("semantico", texto + "\n");
         }
-    
-//    public static void erroSemantico2(String token, int i){
-//        if(out.getPrimeiroErro())    
-//           out.printlnSemantico("Linha "+i+": tipo "+token+" nao declarado");
-//    }
-//    
-//    
-//    public static void erroSemantico4(String token, int i){
-//        if(out.getPrimeiroErro())    
-//           out.printlnSemantico("Linha "+i+": incompatibilidade de parametros na chamada de "+token);
-//    }
-//    
-//    public static void erroSemantico5(String token, int i){
-//        if(out.getPrimeiroErro())    
-//           out.printlnSemantico("Linha "+i+": atribuicao nao compativel para "+token);
-//    }
-//    
-//    public static void erroSemantico6(int i){
-//        if(out.getPrimeiroErro())    
-//            out.printlnSemantico("Linha "+i+": comando retorne nao permitido nesse escopo");
-//    }
-//   
-    
+
+//-------------------------------------------------------------------------------- 
+//      O U T R O S    P R O C E D I M E N T O S   ( O V E R R I D E )
+//--------------------------------------------------------------------------------   
     @Override
     public void syntaxError(Recognizer<?, ?> rcgnzr, Object o, int linha, int i1, String string, RecognitionException re) {
         String texto = ((CommonToken)o).getText();
-//        if (texto.equals("<EOF>"))
-//            {
-//               texto = "EOF";
-//            }
+
         if(!out.serahQueErrou())
             out.println("sintatico", "Linha "+ linha +": erro sintatico proximo a " + texto.replace("<EOF>","EOF") + "\n");
             out.setErro();

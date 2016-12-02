@@ -11,11 +11,26 @@ grammar LAlguma;
     static String grupo = "<407950 & 407895>"; 
     PilhaDeTabelas pilhaDeTabelas = new PilhaDeTabelas();
     int index = -2;
+    
+//--------------------------------------------------------------------------------  
+//								E R R O
+//--------------------------------------------------------------------------------  
+//		Este procedimento chama o erroMiguezento() da classe ErrorListener, e 
+// joga uma exception do Parser.
+//
     public void erro(String txt, int line){
         if(ErrorListener.erroMiguezento(txt, line));
             throw new ParseCancellationException(txt);
     }
-    
+
+//--------------------------------------------------------------------------------  
+//							C O M P A R E
+//--------------------------------------------------------------------------------      
+//		Esta função compara dois tipos diferentes (Strings).
+//		Caso ambos sejam iguais ou o segundo argumento seja null, a função retorna
+// o tipo dos argumentos (novas segundo caso, o tipo do argumento que não é null).
+//		Caso os tipos sejam diferentes, retorna "225: tipo incompativel".
+//
     public String compare(String input1, String input2){
         if(input2 == null || input2 == "")
             return input1;
@@ -25,7 +40,14 @@ grammar LAlguma;
             else
                 return "225: tipo incompativel";
     }
-    
+
+//-------------------------------------------------------------------------------- 
+//						A T R I B U I V E L ?
+//--------------------------------------------------------------------------------   
+//		Esta é similar à função acima, e também faz a comparação dos tipos (Strings)
+// passados como argumento. Porém, essa função retorna verdadeiro caso os argumentos
+// sejam relacionáveis (tipos similares), e falso caso contrário.
+//   
     public boolean atribuivel(String var, String value){                                          
         if(var == value)
             return true;
@@ -35,7 +57,14 @@ grammar LAlguma;
             else
                 return false;
     }
-    
+ 
+//-------------------------------------------------------------------------------- 
+//						D E C L A R A D O   ?
+//--------------------------------------------------------------------------------   
+//		Verifica se o símbolo já foi declarado, seja o símbolo um símbolo "normal",
+// ou o atributo de outro símbolo (EXEMPLO: var1.x).
+//		Caso o símbolo em questão não foi declarado, chama por erro semântico.
+//
     public void declarado(String var, String reg, int line){
         if (reg == null){
             System.out.print(""); // ESSA LINHA É IMPORTANTE
@@ -57,7 +86,16 @@ grammar LAlguma;
                  + var + reg + " nao declarado");
         }
     }
-	
+
+//-------------------------------------------------------------------------------- 
+//				 G E T   I N D E X   ( 1   e   2 )
+//--------------------------------------------------------------------------------  
+//		Estas funções trabalham em conjunto para verificar se o símbolo no qual há
+// erro semântico possui dimensão ou não. Caso possua, retorna "[i]", sendo 'i'
+// a dimensão do símbolo. Caso não possua, retorna uma String vazia ("").
+//
+//		OBS.: Também não sei porque isso foi feito em duas funções...
+//	
     public String getIndex(){return getIndex2(index);}
     public String getIndex2(int idx){      
 		index = -2; 
@@ -247,7 +285,9 @@ declaracao_global :
                  if(!pilhaDeTabelas.existeSimbolo($IDENT.text))
                     pilhaDeTabelas.adicionarSimboloComParametro($IDENT.text, "Procedimento");
                  else
-                    ErrorListener.erroIdentRedeclarado($IDENT.text, $IDENT.getLine());
+                    ErrorListener.erroSemantico(
+                            "Linha " + $IDENT.getLine() + ": identificador "
+                            + $IDENT.text + " ja declarado anteriormente");
                     }
 
 		| 'funcao'
